@@ -1,0 +1,100 @@
+# IDE and Editor files
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
+out/
+.output/
+node_modules/
+.codex-*
+
+# Runtime dependencies vendored into HarmonyOS package resources
+!web_engine/src/main/resources/resfile/resources/app/node_modules/
+!web_engine/src/main/resources/resfile/resources/app/node_modules/**
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.new
+*.oldlocktest
+.cache/
+
+# HarmonyOS specific
+.preview/
+.hvigor/
+oh_modules
+# Test coverage
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Huawei AGC credentials (contains API keys and client secrets)
+**/agconnect-services.json
+**/rawfile/agconnect-services.json
+
+# Build profile with signing credentials
+build-profile.json5
+
+# Obsidian application payload: upstream work, redistribution-restricted.
+# Never publish the .asar or any compressed copy of it. A fresh clone has to put
+# its own copy at web_engine/src/main/resources/resfile/resources/app/obsidian.asar
+*.asar
+*.asar.gz
+
+# Electron / Chromium runtime binaries shipped inside the HAP.
+# libelectron.so alone is 160 MB, over GitHub's hard 100 MB per-file limit, so the
+# runtime is downloaded from the OpenHarmony-SIG Electron release, not versioned.
+electron/libs/
+web_engine/src/main/resources/resfile/*
+!web_engine/src/main/resources/resfile/resources/
+
+# DevEco / BitFun local IDE state (machine paths, run-config ids)
+.bitfun/
+
+# Module config with the maintainer's AGC client_id; the credential-free template is
+# committed as electron/src/main/module.json5.example
+electron/src/main/module.json5
+
+# Git plumbing tuned for LFS, which this project no longer needs (nothing versioned is binary)
+.gitattributes
+
+# Maintainer-only notes with device paths
+plugins/harmony-ime-caret/README.md
+
+# Built packages
+*.hap
+*.hsp
+
+# Signing materials
+**/*.p12
+**/*.p7b
+**/*.cer
+**/*.keystore
+**/*.jks
+
+# Local properties
+local.properties

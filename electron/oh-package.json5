@@ -1,0 +1,13 @@
+{
+  "license": "BSD-3-Clause",
+  "devDependencies": {},
+  "author": "",
+  "name": "electron",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "version": "1.0.0",
+  "dependencies": {
+    "web_engine": 'file:../web_engine',
+    "@hw-agconnect/hmcore": "^1.0.1"
+  }
+}

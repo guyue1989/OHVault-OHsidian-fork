@@ -1,0 +1,9 @@
+{
+  "id": "harmony-ime-caret",
+  "name": "HarmonyOS IME Caret",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "输入法自动补全全角括号后，把光标移回成对符号中间。",
+  "author": "niangao",
+  "isDesktopOnly": false
+}
