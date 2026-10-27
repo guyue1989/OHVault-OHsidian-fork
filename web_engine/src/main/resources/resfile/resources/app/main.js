@@ -117,7 +117,7 @@ applyHarmonyPortConfig();
 // process is what makes the call return null, and null is exactly what
 // Obsidian's p0() checks for before falling back to an in-window modal.
 // Overriding window.open from a renderer script does not work here: the vault
-// bootstrap calls h0(window) (obsidian.asar main bundle, @4703822) after
+// bootstrap calls h0(window) (obsidian.asar /app.js) after
 // DOMContentLoaded and reassigns window.open to its own file:-URL shim, so a
 // dom-ready patch gets clobbered before the user ever reaches for the gear.
 // 132px = the caption block measured off a screenshot: 3 buttons at 42px pitch
@@ -197,7 +197,7 @@ function safeType(contents) {
 
 function installHarmonyUiCompat() {
 	// Obsidian registers its own window-open handler from a web-contents-created
-	// listener (obsidian.asar @24486680: app.on("web-contents-created", (o,i)=>
+	// listener (obsidian.asar /main.js: app.on("web-contents-created", (o,i)=>
 	// {fe(i),...})), and that event is emitted from inside the BrowserWindow
 	// constructor, before browser-window-created. Registering for both and
 	// handling every webContents is what puts our wrapper on the object before

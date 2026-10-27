@@ -16,7 +16,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/HarmonyOS-6.1.0%2823%29-blue" alt="HarmonyOS 6.1.0(23)" />
   <img src="https://img.shields.io/badge/ArkTS-API%2023-orange" alt="ArkTS API 23" />
-  <img src="https://img.shields.io/badge/adapted%20for-Obsidian%201.14.4-purple" alt="Adapted for Obsidian 1.14.4" />
+  <img src="https://img.shields.io/badge/adapted%20for-Obsidian%201.14.5-purple" alt="Adapted for Obsidian 1.14.5" />
   <img src="https://img.shields.io/badge/fork%20of-OHSidian-lightgrey" alt="Fork of OHSidian" />
   <img src="https://img.shields.io/badge/unofficial%20project-not%20affiliated-red" alt="Unofficial, not affiliated" />
 </p>
@@ -45,7 +45,7 @@
 | 是 | 不是 |
 |----|------|
 | HarmonyOS PC（2in1）/ 平板上的**运行适配层**仓库 | Obsidian 的一部分，也不是官方或授权版本 |
-| 上游 OHSidian 的**社区 fork**，跟进 1.14.4 这版应用包 | Obsidian 的重新实现或替代实现 |
+| 上游 OHSidian 的**社区 fork**，跟进 1.14.5 这版应用包 | Obsidian 的重新实现或替代实现 |
 | 针对鸿蒙 PC 的窗口、状态栏、删除语义做的**修复** | 破解、激活工具，或任何绕过许可校验/付费门槛的手段 |
 | 让官方应用包"能在这台机器上启动并正常用"的胶水代码 | 反编译产物、修改版应用包、盗版分发渠道 |
 | 本仓库自己维护的**原创图标美术** | 取自 Obsidian 或任何第三方的美术资产 |
@@ -61,8 +61,7 @@
 本项目的产品名（OHVault）、包名（`com.niangao.ohvault`）和全部图标都是自定的，不是从上游或官方沿用的。目的很明确：
 
 1. **不做来源混淆**。装机列表、状态栏、窗口标题里出现的名字是 OHVault，不会让人误以为装了 Obsidian 官方鸿蒙版；要真跑的是 Obsidian，也会在说明里以"适配目标"的方式提及，而不是当作产品名。
-2. **不搭他人资产的便车**。启动图标、状态栏图标、多语言标签全部替换为自绘标记（一枚尖顶朝上的圆角六边形轮廓，内部三颗实心点呈三角排列，顶角开口处扣着两枚相交的环）；两颗图标出自同一个参数化距离场生成脚本（纯 Node 实现，含自带的 PNG 编码器，不依赖任何图像库，也没有位图临摹或第三方素材），该脚本目前还没收进本仓库。面向用户的字符串资源——`AppScope/resources/base/element/string.json` 与 `electron` 模块的 `base`/`zh_CN`/`en_US` `element/string.json`——已不含 `obsidian` 字样。
-3. **改名的成本是可控的**。项目名 OHVault = OH（OpenHarmony / 鸿蒙）+ Vault（"知识库目录"这个通用概念），不指向任何既有商标。
+2. **不搭他人资产的便车**。启动图标、状态栏图标、多语言标签全部替换为自绘标记。项目名 OHVault = OH（OpenHarmony / 鸿蒙）+ Vault（"知识库目录"这个通用概念），不指向任何既有商标。
 
 商标提及方式：Obsidian、HarmonyOS、Huawei 等名称与标识均为其各自权利人所有，本仓库**仅在指示性（nominative）意义上使用**——用来说明适配目标与运行平台，不构成商标法意义上的使用，也不表示来源。
 
@@ -77,7 +76,7 @@
         ↓
 OHSidian                ← 社区移植工程，把 Electron 应用包接到上述运行时（本仓库的分叉基线）
         ↓
-OHVault（本仓库）        ← 跟进 Obsidian 1.14.4 应用包 + 鸿蒙 PC 端的修复与自绘标识
+OHVault（本仓库）        ← 跟进 Obsidian 1.14.5 应用包 + 鸿蒙 PC 端的修复与自绘标识
 ```
 
 **本 README 不复述运行框架与上游移植工程的实现原理。** 引擎侧（约 50 个适配器、JSBind 注册、C++ 原生库、依赖注入结构、云同步实现等）的说明请读上游文档，它们不属于本仓库的原创内容，也不在本项目的维护与承诺范围内。下面只列本仓库相对分叉基线**实际改了哪些文件、为什么改**。
@@ -90,15 +89,14 @@ OHVault（本仓库）        ← 跟进 Obsidian 1.14.4 应用包 + 鸿蒙 PC �
 
 | # | 改动 | 位置 | 为什么这么改 |
 |---|------|------|-------------|
-| 1 | 跟进应用包 1.14.4 | [resources/app/package.json](web_engine/src/main/resources/resfile/resources/app/package.json) | 版本对齐；应用包本身由使用者自备（见下） |
+| 1 | 跟进应用包 1.14.5 | [resources/app/package.json](web_engine/src/main/resources/resfile/resources/app/package.json) | 版本对齐；应用包本身由使用者自备（见下） |
 | 2 | 标题栏按钮区留白 132 px | [main.js:125](web_engine/src/main/resources/resfile/resources/app/main.js#L125) | 鸿蒙 PC 会在**无边框窗口**右上角自绘最大化/最小化/关闭按钮。Obsidian 只在 `body.mod-windows` / `mod-linux` 下预留这块空间，而本运行时 `process.platform` 报 `openharmony`，两个类名都不会加上，于是 `--frame-right-space` 是空的，标签条会滑到按钮底下。改为运行时注入 132 px（实测：3 个按钮 × 42 px 间距 + 12 px 右内缩 − Obsidian 自身叠加的 8 px） |
 | 3 | 弹出窗口回落为窗口内模态 | [main.js:146](web_engine/src/main/resources/resfile/resources/app/main.js#L146), [main.js:198](web_engine/src/main/resources/resfile/resources/app/main.js#L198) | 设置面板通过 `window.open("about:blank", "_blank", "popup,…")` 打开，而本平台创建不出这种窗口（`startAbility` 返回 16000067），模态会落进一个永不显示的表面，连带 `workspace.activeWindow` 指错、侧栏开关失灵。在主进程对 popup 请求返回 `{action:'deny'}`，让 `window.open` 返回 `null`——这正是 Obsidian 自己判断"该退回窗口内模态"的条件。**必须在主进程做**：从渲染脚本覆盖 `window.open` 会在 vault 引导流程里被重新赋值覆盖掉，补丁撑不到用户点齿轮 |
 | 4 | 状态栏常驻图标 | [main.js:225](web_engine/src/main/resources/resfile/resources/app/main.js#L225), [app/tray-icon.png](web_engine/src/main/resources/resfile/resources/app/tray-icon.png) | Obsidian 自身从不创建 Tray，窗口一隐藏就没有任何"应用还活着"的迹象。用 `electron.Tray` 走本运行时已有的链路落到状态栏。图标为 24×24 纯白描线 + 透明 alpha（本机深色栏），取启动图标同一标记在小尺寸下能站住的部分（六边形 + 三颗点，顶角相扣的双环在 24px 会糊成一团，故省略）；Tray 实例必须由模块级变量常驻引用，否则被回收、图标凭空消失 |
 | 5 | 删除文件回落进 vault 的 `.trash` | [main.js:262](web_engine/src/main/resources/resfile/resources/app/main.js#L262)–[main.js:351](web_engine/src/main/resources/resfile/resources/app/main.js#L351) | 这台设备的原生 `shell.trashItem` 会**返回成功但文件仍在**（FUSE / xattr 限制）。Obsidian 按返回值认为已删除，用户看到的却是文件还在。改为：只有确认目标消失才算成功，否则移动到所属 vault 的 `.trash`；vault 归属先按 `obsidian.json` 的 vault 表做最长前缀匹配，失败再沿 `.obsidian` 目录向上查找 |
 | 6 | 关掉桌面端的更新假设 | [main.js:76](web_engine/src/main/resources/resfile/resources/app/main.js#L76) | 本端口不能下载并重启二进制，写 `updateDisabled=true` 免得应用一直卡在"检查更新"。同一函数会撤销早先强制 `frame=native` 的配置——那条改动会把 vault 路径显示在系统标题栏里，与"不暴露仓库路径"的诉求相反 |
-| 7 | 标识与图标替换 | `AppScope/app.json5`、`AppScope/resources/base/element/string.json`、`AppScope/resources/base/media/*.png`、`electron/src/main/resources/{base,zh_CN,en_US}/element/string.json`、[resources/app/icon.png](web_engine/src/main/resources/resfile/resources/app/icon.png) | 见上一节。HAP 侧 5 个图标（`app_icon`/`icon`/`startIcon`/`product_logo_32`/`tray`）+ 引导层 1 个图标，共 6 处全部换成自绘标记；包名、vendor、label 一并改掉 |
-| 8 | 构建与凭据卫生 | `.gitignore`、`build-profile.example.json5`、`electron/src/main/module.json5.example`（`build-profile.json5` 与 `module.json5` 都不入库） | 目标 SDK 提到 6.1.0(23)；`build-profile.json5`（含签名口令）、`module.json5`（含 AGC `client_id`）、`*.p12/p7b/cer/keystore/jks`、`agconnect-services.json` 一律排除，仓库里只留不含凭据的 example。Electron 运行时二进制与应用包同样不入库（见构建步骤第 2、4 步），入库的只有适配层源码、配置模板与自绘图标 |
-| 9 | 删除兜底的自检开关 | [main.js:353](web_engine/src/main/resources/resfile/resources/app/main.js#L353), [main.js:390](web_engine/src/main/resources/resfile/resources/app/main.js#L390) | 兜底逻辑涉及文件移动，所以配一个**默认关闭**的自测：仅在应用目录放置 `harmonyos-trash-test.enabled` 标记文件时才运行，用临时目录里的假 vault 试删一个临时文件，结束后恢复 `obsidian.json` 并删除临时目录，不触碰用户数据 |
+| 7 | 构建与凭据卫生 | `.gitignore`、`build-profile.example.json5`、`electron/src/main/module.json5.example`（`build-profile.json5` 与 `module.json5` 都不入库） | 目标 SDK 提到 6.1.0(23)；`build-profile.json5`（含签名口令）、`module.json5`（含 AGC `client_id`）、`*.p12/p7b/cer/keystore/jks`、`agconnect-services.json` 一律排除，仓库里只留不含凭据的 example。Electron 运行时二进制与应用包同样不入库（见构建步骤第 2、4 步），入库的只有适配层源码、配置模板与自绘图标 |
+| 8 | 删除兜底的自检开关 | [main.js:353](web_engine/src/main/resources/resfile/resources/app/main.js#L353), [main.js:390](web_engine/src/main/resources/resfile/resources/app/main.js#L390) | 兜底逻辑涉及文件移动，所以配一个**默认关闭**的自测：仅在应用目录放置 `harmonyos-trash-test.enabled` 标记文件时才运行，用临时目录里的假 vault 试删一个临时文件，结束后恢复 `obsidian.json` 并删除临时目录，不触碰用户数据 |
 
 两处值得留意的实现取向（不是 feature，是"为什么没做更复杂的那版"）：
 
@@ -168,9 +166,8 @@ hvigorw assembleHap
 - 本仓库**不分发** Obsidian 的应用代码、asar 包或其内部资源。上面第 4 步要求你自己从 obsidian.md 获取；`*.asar` 与 `*.asar.gz` 都已被 `.gitignore` 挡住，构建产物 `*.hap` 也一样。
 - Electron / Chromium 运行时同样不在本仓库里：`electron/libs/` 与 `resfile` 下的运行时文件按第 2 步自取。来源是本项目分叉基线的那个仓库，本仓库不重新分发它，也不对其可用性作承诺。
 - 你放进来的 asar 不会被本项目的构建流程修改：适配层全部代码都在 `main.js` 与 ArkTS 侧，运行时通过 Electron 公开 API 生效。
-- 已核对过的事实，供参考：本仓库维护者本机内置的那份 1.14.4 包与官方发行包**逐字节相同**——
-  `sha256 146ef8470d8cbb4a6db209bdc19bf2bad13350444186c0fd93c31087b142b92f`，27477966 字节。
-  任何人都可以对自己下载的官方包算同样的哈希来核对官方发行完整性；哈希一致即说明本项目没有篡改应用内容。
+- 本机内置包的哈希，供你自己下载后比对：当前 1.14.5——`sha256 3a349274f789b62c5b35ad19de10311909a94e8783033569c2210a4bac491780`，28177896 字节；上一版 1.14.4——`sha256 146ef8470d8cbb4a6db209bdc19bf2bad13350444186c0fd93c31087b142b92f`，27477966 字节，这一版**已按官方发行包逐字节核对过**。
+  任何人都可以对自己下载的官方包算同样的哈希来核对官方发行完整性；哈希一致即说明本项目没有篡改应用内容。1.14.5 这一版尚未做这个核对（本机只有使用者放入的包），在它被核对前，请把它当作"待验证"而不是"已确认与官方一致"。
 - 本项目不包含、也拒绝任何形式的许可校验绕过、激活码、试用重置。Obsidian 在本地管理自己的 Markdown 文件这一基本用途不需要本项目之外的任何条件。
 
 ---
@@ -197,7 +194,7 @@ hvigorw assembleHap
 - **图标只出了白色一版**，适配深色状态栏（本机 `long-notround-horizontal-dark-tablet-xhdpi`）。浅色壁纸下需要另出一套黑色描线。
 - **华为账号登录与云同步属上游能力**，本 fork 未在本机验证过，不承诺可用。
 - **只在 2in1 实测**，tablet 机型未验证；本运行时不支持的调用一般返回 801 / 16000067。
-- **不保证跨版本适用**。第 2、3 项的数值与判断是照 Obsidian 1.14.4 的行为调出来的，换版本可能需要同步调整；引导层的更新通道本身按官方包设计，不受影响。
+- **不保证跨版本适用**。第 2、3 项的数值与判断是照 Obsidian 应用包的行为调出来的，换版本可能需要同步调整；引导层的更新通道本身按官方包设计，不受影响。（本次从 1.14.4 升到 1.14.5 的实测：两版 asar 里 366 个文件逐字节相同，`app.js` 3,942,126 字节中只有 1 个字节不同——版本字符串本身，`/package.json` 同理，另外多出一个尚未被任何文件引用的 `lib/pele.min.js`（Pele 1.8.0，Obsidian 自己的 MIT 图表渲染库）。所以这几处补丁依赖的类名、CSS 变量与 `window.open` 调用形式都没有变动。）
 - **`resources/app/package.json` 里仍写着 `name: "obsidian"` / `author: "Obsidian"`**。那是 Electron 的内部元数据，不暴露在 HAP 或装机列表里，但 `app.getPath('userData')` 由它派生——改名会搬走用户数据目录，代价远大于收益，所以留着没动。这一点是有意取舍，不是遗漏。
 
 
