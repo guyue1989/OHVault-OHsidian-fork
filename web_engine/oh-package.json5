@@ -1,9 +1,9 @@
 {
   "name": "web_engine",
   "version": "1.0.0",
-  "description": "Please describe the basic information.",
+  "description": "OHVault - a runtime adaptation layer that runs the Obsidian application package on HarmonyOS PC",
   "main": "Index.ets",
-  "author": "",
+  "author": "niangao",
   "license": "BSD-3-Clause",
   "devDependencies": {
     'libadapter.so': 'file:./src/main/cpp/types/libadapter',

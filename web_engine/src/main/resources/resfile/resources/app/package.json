@@ -1,7 +1,7 @@
 {
 	"name": "obsidian",
-	"description": "Obsidian HarmonyOS Edition",
-	"version": "1.14.5",
+	"description": "HarmonyOS PC adaptation layer for the Obsidian application package",
+	"version": "1.15.0",
 	"homepage": "https://obsidian.md",
 	"license": "UNLICENSED",
 	"author": "Obsidian",

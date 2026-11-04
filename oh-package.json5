@@ -4,9 +4,9 @@
   "devDependencies": {
     "@ohos/hypium": "1.0.6"
   },
-  "author": "",
+  "author": "niangao",
   "name": "ohos_hap",
-  "description": "Please describe the basic information.",
+  "description": "OHVault - a runtime adaptation layer that runs the Obsidian application package on HarmonyOS PC",
   "main": "",
   "version": "1.0.0",
   "dependencies": {}

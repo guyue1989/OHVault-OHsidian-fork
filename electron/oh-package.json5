@@ -1,9 +1,9 @@
 {
   "license": "BSD-3-Clause",
   "devDependencies": {},
-  "author": "",
+  "author": "niangao",
   "name": "electron",
-  "description": "Please describe the basic information.",
+  "description": "OHVault - a runtime adaptation layer that runs the Obsidian application package on HarmonyOS PC",
   "main": "",
   "version": "1.0.0",
   "dependencies": {

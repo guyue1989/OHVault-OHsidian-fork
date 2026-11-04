@@ -70,9 +70,8 @@ let dataPath = app.getPath('userData');
 
 // Obsidian's auto-update flow assumes a desktop Electron that can download and
 // relaunch binaries, which this port cannot do. Pin updates-disabled in
-// userData/obsidian.json before the app bundle reads it. An earlier build of this
-// shim forced frame="native", which put the vault path in a system title bar, so
-// drop that value here and let Obsidian fall back to its default hidden frame.
+// userData/obsidian.json before the app bundle reads it. frame="native" is
+// dropped as well: it puts the vault path in a system title bar.
 function applyHarmonyPortConfig() {
 	let configPath = path.join(dataPath, 'obsidian.json');
 	let config = null;
@@ -184,7 +183,123 @@ function installHarmonyUiOnContents(contents, source) {
 		} catch (e) {
 			logUi('[HMOS-UI] executeJavaScript threw', e);
 		}
+		injectHarmonyEs5Compat(contents);
+		injectHarmonyDiag(contents);
+		injectHarmonyDiagramTheme(contents);
 	});
+	// Backstop: the shim has to be in place before Obsidian fetches the first
+	// plugin script, and dom-ready can fire early in a race with that fetch.
+	// The shim is idempotent, so a second injection is a no-op.
+	contents.on('did-finish-load', () => {
+		injectHarmonyEs5Compat(contents);
+		injectHarmonyDiag(contents);
+		injectHarmonyDiagramTheme(contents);
+	});
+}
+
+// Obsidian 1.15.0 turned the plugin base classes into native ES6 classes,
+// which breaks plugins that TypeScript compiled to ES5: their inherited
+// constructor calls the base class as a function, and a native class refuses
+// that. The shim lives in its own file so it can be injected without touching
+// the bootstrapper.
+let harmonyEs5CompatSource = null;
+
+function loadHarmonyEs5CompatSource() {
+	if (harmonyEs5CompatSource !== null) {
+		return harmonyEs5CompatSource;
+	}
+	try {
+		harmonyEs5CompatSource = fs.readFileSync(path.join(__dirname, 'es5-plugin-compat.js'), 'utf8');
+	} catch (e) {
+		harmonyEs5CompatSource = '';
+		logUi('[HMOS-ES5] es5-plugin-compat.js is unreadable', e);
+	}
+	return harmonyEs5CompatSource;
+}
+
+function injectHarmonyEs5Compat(contents) {
+	let source = loadHarmonyEs5CompatSource();
+	if (!source) {
+		return;
+	}
+	try {
+		Promise.resolve(contents.executeJavaScript(source)).then(
+			(value) => logUi('[HMOS-ES5] compat shim:', value),
+			(e) => logUi('[HMOS-ES5] compat shim failed', e)
+		);
+	} catch (e) {
+		logUi('[HMOS-ES5] compat shim threw', e);
+	}
+}
+
+// The diagram engine lives in the renderer and its failures never reach hilog,
+// so a diagram that stays a plain code block is indistinguishable from a syntax
+// problem. This probe reads the rendered DOM: the resolved CSS variables, the
+// computed label colours, and the stylesheet rules that define those variables.
+let harmonyDiagSource = null;
+
+function loadHarmonyDiagSource() {
+	if (harmonyDiagSource !== null) {
+		return harmonyDiagSource;
+	}
+	try {
+		harmonyDiagSource = fs.readFileSync(path.join(__dirname, 'harmony-diag.js'), 'utf8');
+	} catch (e) {
+		harmonyDiagSource = '';
+		logUi('[HMOS-DIAG] harmony-diag.js is unreadable', e);
+	}
+	return harmonyDiagSource;
+}
+
+function injectHarmonyDiag(contents) {
+	let source = loadHarmonyDiagSource();
+	if (!source) {
+		return;
+	}
+	try {
+		Promise.resolve(contents.executeJavaScript(source)).then(
+			(value) => logUi('[HMOS-DIAG] diag:', value),
+			(e) => logUi('[HMOS-DIAG] diag failed', e)
+		);
+	} catch (e) {
+		logUi('[HMOS-DIAG] diag threw', e);
+	}
+}
+
+// Pelé paints diagram labels with --pele-fg, which Obsidian defines as
+// var(--mermaid-text-color) -> var(--text-normal). A theme or snippet that
+// redefines a link of that chain leaves the labels on Pelé's inline fallback
+// (#1f1f1f), which is unreadable on a dark background. This reinstates the
+// theme's own text colour as a literal and repaints labels that still fail a
+// contrast check.
+let harmonyDiagramThemeSource = null;
+
+function loadHarmonyDiagramThemeSource() {
+	if (harmonyDiagramThemeSource !== null) {
+		return harmonyDiagramThemeSource;
+	}
+	try {
+		harmonyDiagramThemeSource = fs.readFileSync(path.join(__dirname, 'harmony-diagram-theme.js'), 'utf8');
+	} catch (e) {
+		harmonyDiagramThemeSource = '';
+		logUi('[HMOS-THEME] harmony-diagram-theme.js is unreadable', e);
+	}
+	return harmonyDiagramThemeSource;
+}
+
+function injectHarmonyDiagramTheme(contents) {
+	let source = loadHarmonyDiagramThemeSource();
+	if (!source) {
+		return;
+	}
+	try {
+		Promise.resolve(contents.executeJavaScript(source)).then(
+			(value) => logUi('[HMOS-THEME] diagram theme:', value),
+			(e) => logUi('[HMOS-THEME] diagram theme failed', e)
+		);
+	} catch (e) {
+		logUi('[HMOS-THEME] diagram theme threw', e);
+	}
 }
 
 function safeType(contents) {
@@ -195,20 +310,63 @@ function safeType(contents) {
 	}
 }
 
+// Renderer console output never reaches hilog on this fork, only main-process
+// stdout does. A Pelé or Obsidian renderer exception is therefore invisible:
+// the failing code block just stays a plain code block. Forward errors and
+// warnings (and anything mentioning the diagram engine) to the main log.
+function installHarmonyConsoleForwarding(contents) {
+	if (!contents || contents.__hmConsole) {
+		return;
+	}
+	contents.__hmConsole = true;
+	contents.on('console-message', (...args) => {
+		let level = 0;
+		let message = '';
+		let line = 0;
+		let source = '';
+		// Electron 34 passes (event, level, message, line, sourceId); later
+		// versions pass (event, details).
+		const details = (args[0] && typeof args[0] === 'object' && 'message' in args[0]) ? args[0] :
+			(args[1] && typeof args[1] === 'object' && 'message' in args[1]) ? args[1] : null;
+		if (details) {
+			level = details.level;
+			message = details.message;
+			line = details.lineNumber;
+			source = details.sourceId || '';
+		} else {
+			level = args[1];
+			message = args[2];
+			line = args[3];
+			source = args[4] || '';
+		}
+		message = String(message);
+		const isOurs = /HMOS-|pele|mermaid|diagram/i.test(message);
+		if (!(level >= 2 || isOurs)) {
+			return;
+		}
+		logUi('[HMOS-RENDERER] ' + message + ' @ ' + source + ':' + line);
+	});
+	contents.on('render-process-gone', (e, details) => {
+		logUi('[HMOS-RENDERER] render process gone', details && details.reason);
+	});
+}
+
 function installHarmonyUiCompat() {
 	// Obsidian registers its own window-open handler from a web-contents-created
 	// listener (obsidian.asar /main.js: app.on("web-contents-created", (o,i)=>
 	// {fe(i),...})), and that event is emitted from inside the BrowserWindow
 	// constructor, before browser-window-created. Registering for both and
 	// handling every webContents is what puts our wrapper on the object before
-	// fe() reaches it. Filtering by getType() here used to skip the vault window
-	// silently, leaving Obsidian's handler unwrapped and the popout on the
-	// createWindow path - so no type filter, and the type is logged instead.
+	// fe() reaches it. The window type is not filtered on: the vault window
+	// comes through here too, and a filter that skips it leaves Obsidian's own
+	// handler unwrapped. The type is logged instead.
 	app.on('web-contents-created', (event, contents) => {
 		installHarmonyUiOnContents(contents, 'web-contents-created');
+		installHarmonyConsoleForwarding(contents);
 	});
 	app.on('browser-window-created', (event, win) => {
 		installHarmonyUiOnContents(win && win.webContents, 'browser-window-created');
+		installHarmonyConsoleForwarding(win && win.webContents);
 	});
 }
 
@@ -494,9 +652,6 @@ async function update(manual) {
 	}
 	updateEvents.emit('check-start');
 	try {
-		// Hopefully this can help us catch any updater failures
-		// Or any old buggy versions that may still be operating in the wild.
-		// Don't wait on the async result
 		httpGetBinary('https://releases.obsidian.md/desktop?id=' + id + '&v=' + currentPackageVersion + '&p=' + process.platform).then(() => null, () => null);
 	} catch (e) {
 	}
@@ -570,7 +725,6 @@ async function downloadUpdate(updateJson) {
 		return;
 	}
 
-	// A new version is posted, go get it!
 	if (isV2MoreRecent(currentPackageVersion, latestVersion)) {
 		// Download file only if it's not already here
 		let downloadPath = path.join(dataPath, 'obsidian-' + latestVersion + '.asar');

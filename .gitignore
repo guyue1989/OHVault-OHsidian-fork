@@ -27,6 +27,14 @@ node_modules/
 !web_engine/src/main/resources/resfile/resources/app/node_modules/
 !web_engine/src/main/resources/resfile/resources/app/node_modules/**
 
+# btime and get-fonts are declared as "UNLICENSED" npm packages, so there is no
+# grant to redistribute them here. The application loads both through a guarded
+# require, so a runtime without them starts normally but loses the birth-time
+# write and the system font listing. Put them next to the application package
+# yourself if you want those.
+web_engine/src/main/resources/resfile/resources/app/node_modules/btime/
+web_engine/src/main/resources/resfile/resources/app/node_modules/get-fonts/
+
 # Logs
 *.log
 logs/
